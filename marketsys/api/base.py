@@ -1,0 +1,82 @@
+import logging
+import requests
+
+
+class BaseAPI(object):
+    def _request(self, method, endpoint, **kwargs):
+        kwargs['method'] = method
+
+        request_url = '%s%s' % (self.get_base_url(), endpoint)
+        print(request_url)
+        kwargs['url'] = request_url
+        print(kwargs)
+
+        self.before_request(kwargs)
+        result = requests.request(**kwargs)
+        if not result.ok:
+            logging.error('request to %s (%s) failed: %s',
+                          self.__class__.__name__, request_url, result.text)
+        return result
+
+    def get_base_url(self):
+        raise NotImplementedError
+
+    def before_request(self, kwargs):
+        # setting default timeout = 5s
+        kwargs['timeout'] = 5
+
+    def get(self, endpoint, params=None, **kwargs):
+        return self._request('GET', endpoint, params=params, **kwargs)
+
+    def post(self, endpoint, data=None, json=None, **kwargs):
+        return self._request('POST', endpoint, data=data, json=json, **kwargs)
+
+    def put(self, endpoint, data=None, **kwargs):
+        return self._request('PUT', endpoint, data=data, **kwargs)
+
+    def options(self, endpoint, **kwargs):
+        return self._request('OPTIONS', endpoint, **kwargs)
+
+    def head(self, endpoint, **kwargs):
+        return self._request('HEAD', endpoint, **kwargs)
+
+    def patch(self, endpoint, data=None, **kwargs):
+        return self._request('PATCH', endpoint, data=data, **kwargs)
+
+    def delete(self, endpoint, **kwargs):
+        return self._request('DELETE', endpoint, **kwargs)
+
+
+class BaseServiceAPI(BaseAPI):
+    def __init__(self, token=None):
+        super().__init__()
+        self._token = token or self.default_token()
+
+    def get_base_url(self):
+        raise NotImplementedError
+
+    def default_token(self):
+        raise NotImplementedError
+
+    def before_request(self, kwargs):
+        auth = (self._token, None)
+        kwargs.setdefault('auth', auth)
+
+
+class ServiceAPI(BaseAPI):
+    def __init__(self, token=None):
+        super().__init__()
+        self._token = token or self.default_token()
+
+    def get_base_url(self):
+        raise NotImplementedError
+
+    def default_token(self):
+        raise NotImplementedError
+
+    def before_request(self, kwargs):
+        auth = (self._token, None)
+        kwargs.setdefault('auth', auth)
+        # headers = {'Accept-Language': 'in[-_]ID'}
+        headers = {'Accept-Language': 'zh[-_]CN'}
+        kwargs.setdefault('headers', headers)

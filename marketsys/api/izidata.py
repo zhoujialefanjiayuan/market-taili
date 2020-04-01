@@ -1,0 +1,3 @@
+secretKey = 'fHhUCQgTlpFKuiAhFnTBtsGpSFTZyOWwaUbGVgGk'
+accessKey = 'DjEVvsmbeCZTkuhfPfNf'
+
